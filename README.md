@@ -85,11 +85,11 @@ Let's put what we discussed into practice. Consider the following schema:
 - **student** (*student_id*, name)  
 - **take** (*student_id*, *course_id*, enroll_date)  
 
-In [SQLiteStudentExample.java](src/SQLiteStudentExample.java) class, this schema is created and initialized with sample data.
+In [SQLiteEnrollExample.java](src/SQLiteEnrollExample.java) class, this schema is created and initialized with sample data.
 The task here is to write a program that enrolls a student to a course.
 The program must prompt the user for student id and course id.
 Then, after performing preliminary validations, it must insert a row to **take** table and update _seats_available_ in **course** table.
-The code can be found in [SQLiteStudentExample.java](src/SQLiteStudentExample.java). 
+The code can be found in [SQLiteEnrollExample.java](src/SQLiteEnrollExample.java). 
 
 ### Running the Example
  
