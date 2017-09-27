@@ -5,10 +5,20 @@ import java.util.Date;
 import java.util.Scanner;
 
 /**
- * Created with IntelliJ IDEA.
- * User: ehsan
- * Date: 9/27/2017
- * Time: 12:50 AM
+ * An Example for learning the basics of JDBC with SQLite database.<br>
+ * The schema in this example is
+ * <ul>
+ *     <li>course (<u>course_id</u>, title, seats_available)</li>
+ *     <li>student (<u>student_id</u>, name)</li>
+ *     <li>take (<u>student_id</u>, <u>course_id</u>, enroll_date)</li>
+ * </ul>
+ *
+ * The goal here is to enroll a student to a course.
+ * This program reads a student id and a course id from input.
+ * The input ids are validated in {@link #validate(long, long)}
+ * and if no error is found, then a new row is inserted
+ * into <i>take</i> table and number of avaialable seats
+ * in <i>course</i> table is updated, implemented in {@link #enroll(long, long)}.
  */
 public class SQLiteEnrollExample {
 
