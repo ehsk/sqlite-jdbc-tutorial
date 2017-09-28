@@ -1,5 +1,13 @@
 # SQLite JDBC Tutorial
-In this tutorial, I explain how to write a program in Java to work with SQLite database.
+The goal of this tutorial is to learn how to write a program in Java to work with SQLite database.
+This tutorial covers the basics of JDBC and SQLite-JDBC.
+An example code is also provided to practice on JDBC.
+Here is the outline of this tutorial:
+
++ [JDBC: At a Glance](#jdbc-at-a-glance)
++ [SQLite-JDBC](#sqlite-jdbc)
++ [Example](#example)
+   
 
 ## JDBC: At a Glance
 The Java Database Connectivity, or JDBC in short, is a standard for dealing with a relational database in Java.
@@ -85,17 +93,40 @@ Let's put what we discussed into practice. Consider the following schema:
 - **student** (*student_id*, name)  
 - **take** (*student_id*, *course_id*, enroll_date)  
 
-In [SQLiteEnrollExample.java](src/SQLiteEnrollExample.java) class, this schema is created and initialized with sample data.
-The task here is to write a program that enrolls a student to a course.
-The program must prompt the user for student id and course id.
-Then, after performing preliminary validations, it must insert a row to **take** table and update _seats_available_ in **course** table.
-The code can be found in [SQLiteEnrollExample.java](src/SQLiteEnrollExample.java). 
+The goal here is to write a program that is able to perform two tasks:
+
+First, the program must support enrolling a student to a course.
+In order to do that, it prompts user for student id and course id.
+Then, after performing preliminary validations, the program must insert a row to **take** table 
+and update _seats_available_ in **course** table.
+
+The second task is defined to work with `ResultSet` class.
+In this task, the program retrieves information of students, but not all in once.
+The program must load information page by page, called pagination, because the number of students may be so large
+that it does'nt fit into memory. The details of pagination in SQLite is provided in [3].
+     
+The code can be found in [SQLiteJDBCExample.java](src/SQLiteJDBCExample.java). 
 
 ### Running the Example
- 
+Before running the code, you need to compile the code. The code is located in [src](src)
+and depends on SQLite-JDBC library, located in [lib](lib).
+
+You can compile the code using the following command:
+
+    mkdir target
+    javac -cp "lib/sqlite-jdbc-3.20.0.jar" -d target src/SQLiteJDBCExample.java
+
+The class file is generated in _target_ folder.
+The following command can be used to run the code:
+
+    java -cp "lib/sqlite-jdbc-3.20.0.jar:target" SQLiteJDBCExample <arg>
+    
+The argument can be either _paginate_ or _enroll_.   
 
 
 ## References
 [1] https://docs.oracle.com/javase/tutorial/jdbc/overview/index.html
 
 [2] https://github.com/xerial/sqlite-jdbc
+
+[3] https://www.sqlite.org/cvstrac/wiki?p=ScrollingCursor

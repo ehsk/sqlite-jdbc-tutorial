@@ -13,14 +13,25 @@ import java.util.Scanner;
  *     <li>take (<u>student_id</u>, <u>course_id</u>, enroll_date)</li>
  * </ul>
  *
- * The goal here is to enroll a student to a course.
- * This program reads a student id and a course id from input.
+ * This example consists of two tasks.
+ * To choose, a parameter needs to be passed to the program,
+ * i.e. <i>enroll</i> or <i>paginate</i>.<br>
+ *
+ * This first task is to enroll a student to a course.
+ * The program reads a student id and a course id from input.
  * The input ids are validated in {@link #validate(long, long)}
  * and if no error is found, then a new row is inserted
- * into <i>take</i> table and number of avaialable seats
- * in <i>course</i> table is updated, implemented in {@link #enroll(long, long)}.
+ * into <b>take</b> table and number of avaialable seats
+ * in <b>course</b> table is updated.<br>
+ *
+ * The second task includes paginating over all students.
+ * The program prompts user for page size.
+ * After validating page size in {@link #validatePageSize(int)},
+ * the students information are shown page by page.
+ * @see #enroll()
+ * @see #paginate()
  */
-public class SQLiteEnrollExample {
+public class SQLiteJDBCExample {
 
     private static final String JDBC_URL = "jdbc:sqlite::memory:";
 
@@ -81,7 +92,8 @@ public class SQLiteEnrollExample {
                 "1,CMPUT291,200", "2,CMPUT274,70", "3,CMPUT301,80"
         };
         final String[] students = new String[] {
-                "11,John", "12,Mary", "13,Steve", "14,Bob"
+                "11,John", "12,Mary", "13,Steve", "14,Bob", "15,Seth",
+                "16,Samantha", "17,Emily", "18,Paul", "19,Emma", "20,Ross"
         };
         final String[] takes = new String[] {
                 "1,11,2017-08-01",
@@ -126,14 +138,24 @@ public class SQLiteEnrollExample {
 
     /**
      * Enrolls a student to a course.
-     * First, the existence of student and course is checked.
-     * Second, the course must have available seats.
-     * Third, the student must not have already taken the course.
+     * First, student ID and course ID are prompted from user.
+     * Then, validation is performed in three steps:<br>
+     *     <ul>
+     *         <li>The existence of student and course is checked,</li>
+     *         <li>The course must have available seats,</li>
+     *         <li>The student must not have already taken the course.</li>
+     *     </ul>
      * Once validated, a row will be inserted to "take" table and number of available seats will be decremented in course.
-     * @param studentId read from Standard input
-     * @param courseId read from Standard input
      */
-    void enroll(long studentId, long courseId) {
+    void enroll() {
+        final Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Please enter student id: ");
+        final long studentId = scanner.nextLong();
+
+        System.out.print("Please enter course id: ");
+        final long courseId = scanner.nextLong();
+
         try {
             if (!validate(studentId, courseId)) return;
 
@@ -194,6 +216,70 @@ public class SQLiteEnrollExample {
         return true;
     }
 
+    /**
+     * Iterates through all students.
+     * First, prompts user for page size.
+     * Page size must be an integer between 1 (inclusive) and 5 (inclusive).
+     * Then, the method prints students in a table for each page. <br>
+     * Pagination in SQLite can be done through LIMIT keyword and last id of the last page.
+     * Therefore, the method adopts the following query: <br>
+     *     <pre>SELECT * FROM table WHERE id > :lastId ORDER BY id LIMIT :pageSize</pre>
+     */
+    void paginate() {
+        try {
+            final PreparedStatement pstmt = con.prepareStatement("SELECT * FROM student WHERE student_id > ? ORDER BY student_id ASC LIMIT ?");
+
+            final Scanner scanner = new Scanner(System.in);
+
+            long lastId = 0;
+            System.out.print("Enter page size (an integer in [1,5]): ");
+            int pageSize = scanner.nextInt();
+            if (!validatePageSize(pageSize)) return;
+
+            scanner.reset();
+
+            int page = 1;
+            while (true) {
+                pstmt.setLong(1, lastId);
+                pstmt.setInt(2, pageSize);
+                final ResultSet rs = pstmt.executeQuery();
+
+                boolean isEmptyPage = true;
+                while (rs.next()) {
+                    if (isEmptyPage) {
+                        System.out.println("Page " + page++);
+                        System.out.println("+---|--------+");
+                        System.out.printf("|%-3s|%-8s|\n", "id", "name");
+                        System.out.println("+---|--------+");
+                    }
+
+                    isEmptyPage = false;
+
+                    final long stdId = rs.getLong("student_id");
+                    final String stdName = rs.getString("name");
+                    System.out.printf("|%-3d|%-8s|\n", stdId, stdName);
+                    lastId = stdId;
+                }
+
+                if (isEmptyPage) break;
+
+                System.out.println("+---|--------+\n");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[ERROR] paginate : " + e.getMessage());
+        }
+    }
+
+    private boolean validatePageSize(int pageSize) {
+        if (pageSize > 5 || pageSize < 1) {
+            System.err.println("[ERROR] paginate : page size must be in range [1,5]");
+            return false;
+        }
+
+        return true;
+    }
+
     private boolean studentExists(Statement stmt, long studentId) throws SQLException {
         final ResultSet rs = stmt.executeQuery("SELECT student_id FROM student WHERE student_id = " + studentId);
         final boolean exists = rs.next();
@@ -223,21 +309,22 @@ public class SQLiteEnrollExample {
     }
 
     public static void main(String[] args) throws SQLException {
-        SQLiteEnrollExample example = new SQLiteEnrollExample();
+        if (args == null || args.length == 0 || !args[0].toLowerCase().matches("(paginate|enroll)")) {
+            System.err.println("The program requires an argument, which can be either 'paginate' or 'enroll'");
+            System.exit(1);
+        }
+
+        SQLiteJDBCExample example = new SQLiteJDBCExample();
         example.openConnection();
         example.createSchema();
         example.initSchema();
         System.out.println("Initialization complete!!");
 
-        final Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Please enter student id: ");
-        final long studentId = scanner.nextLong();
-
-        System.out.print("Please enter course id: ");
-        final long courseId = scanner.nextLong();
-
-        example.enroll(studentId, courseId);
+        if (args[0].equalsIgnoreCase("paginate")) {
+            example.paginate();
+        } else {
+            example.enroll();
+        }
         example.closeConnection();
     }
 
