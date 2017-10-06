@@ -63,7 +63,7 @@ All JDBC APIs are provided in `java.sql` and `javax.sql` packages.
 ## SQLite-JDBC
 SQLite-JDBC [2] is the JDBC Driver we're using for SQLite in this tutorial.
 
-SQLite supports in-memory data management and use SQLite without any files, JDBC URL should be defined as **`jdbc:sqlite::memory:`**.
+SQLite supports in-memory data management. In order to SQLite without any files, JDBC URL should be defined as **`jdbc:sqlite::memory:`**.
 Also, for storing data in a file, JDBC URL must be **`jdbc:sqlite:/path/myfile.db`** (UNIX-style) or **`jdbc:sqlite:C:/path/myfile.db`** (Windows-style).
 
 Here is an example code to acquire an in-memory SQLite connection:
